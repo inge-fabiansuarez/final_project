@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sensors/sensors.dart';
 import 'dart:math' as math;
+import 'package:firebase_database/firebase_database.dart';
+import 'package:geolocator/geolocator.dart';
 
 class AccelerationScreen extends StatefulWidget {
   @override
@@ -11,24 +13,24 @@ class _AccelerationScreenState extends State<AccelerationScreen> {
   double threshold = 9.8 * 2.0; // Umbral para detectar caídas
   bool fallDetected = false;
   double accelerationValue = 0.0;
+  late DatabaseReference _fallDataRef;
+  bool isSavingData = false;
 
   @override
   void initState() {
     super.initState();
+    _fallDataRef = FirebaseDatabase.instance.reference().child('fall_data');
     _initAccelerometer();
   }
 
   void _initAccelerometer() {
-    accelerometerEvents.listen((AccelerometerEvent event) {
-      // Lee los valores de aceleración en los ejes x, y, y z
+    accelerometerEvents.listen((AccelerometerEvent event) async {
       double x = event.x ?? 0.0;
       double y = event.y ?? 0.0;
       double z = event.z ?? 0.0;
 
-      // Calcula la aceleración total
       double accelerationTotal = _calculateTotalAcceleration(x, y, z);
 
-      // Compara con el umbral para detectar caídas
       bool isFall = accelerationTotal > threshold;
 
       setState(() {
@@ -36,23 +38,42 @@ class _AccelerationScreenState extends State<AccelerationScreen> {
         accelerationValue = accelerationTotal;
       });
 
-      if (fallDetected) {
-        // Aquí puedes realizar acciones adicionales cuando se detecta una caída
+      if (fallDetected && !isSavingData) {
         print('¡Caída detectada!');
-        _saveFallDataToFirebase(); // Guardar en Firebase al detectar una caída
+        await _saveFallDataToFirebase(); // Espera a que se complete antes de continuar
       }
     });
   }
 
   double _calculateTotalAcceleration(double x, double y, double z) {
-    // Calcula la aceleración total utilizando la fórmula matemática
     return math.sqrt(x * x + y * y + z * z);
   }
 
-  void _saveFallDataToFirebase() {
-    // Lógica para guardar datos en Firebase
-    // Implementa la lógica de Firebase aquí
-    print('Guardando datos en Firebase...');
+  Future<void> _saveFallDataToFirebase() async {
+    setState(() {
+      isSavingData = true;
+    });
+
+    try {
+      // Obtiene la ubicación actual
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      // Guarda los datos en Firebase Realtime Database
+      await _fallDataRef.push().set({
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+        'acceleration': accelerationValue,
+        'latitude': position.latitude,
+        'longitude': position.longitude,
+      });
+    } catch (e) {
+      print('Error al obtener la ubicación: $e');
+    }
+
+    setState(() {
+      isSavingData = false;
+    });
   }
 
   @override
@@ -62,7 +83,7 @@ class _AccelerationScreenState extends State<AccelerationScreen> {
         title: Text('Detección de Caídas'),
       ),
       body: Container(
-        color: Colors.blue[900], // Establecer el color de fondo a azul oscuro
+        color: Colors.blue[900],
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -121,6 +142,11 @@ class _AccelerationScreenState extends State<AccelerationScreen> {
                   ),
                 ),
               ),
+              SizedBox(height: 20.0),
+              if (isSavingData)
+                CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
             ],
           ),
         ),

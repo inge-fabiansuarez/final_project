@@ -2,8 +2,23 @@ import 'package:flutter/material.dart';
 import 'acceleration_screen.dart';
 import 'location_screen.dart';
 import 'user_list_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    // Inicializar Firebase
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    print('Error initializing Firebase: $e');
+    // Puedes realizar acciones adicionales según sea necesario, como mostrar un mensaje al usuario.
+  }
+
+  // El resto del código de tu aplicación
   runApp(MyApp());
 }
 
