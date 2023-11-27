@@ -73,7 +73,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.people),
-            label: 'Lista de Usuarios',
+            label: 'Lista de Caidas',
           ),
         ],
       ),

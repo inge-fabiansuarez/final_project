@@ -62,7 +62,7 @@ class _LocationScreenState extends State<LocationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Location Screen'),
+        title: Text('Ubicación en tiempo real'),
       ),
       body: GoogleMap(
         onMapCreated: (controller) {
