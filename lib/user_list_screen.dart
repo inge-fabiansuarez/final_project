@@ -31,6 +31,7 @@ class _UserListScreenState extends State<UserListScreen> {
             'acceleration': value['acceleration'],
             'latitude': value['latitude'],
             'longitude': value['longitude'],
+            'activity': value['activity'], // Agrega el campo 'activity'
           });
         });
 
@@ -87,9 +88,7 @@ class _UserListScreenState extends State<UserListScreen> {
                       ),
                     ],
                   ),
-                  leading: _getEmergencyIcon(
-                    fallDataList[index]['acceleration'],
-                  ),
+                  trailing: _getActivityCard(fallDataList[index]['activity']),
                 ),
               ),
             );
@@ -105,7 +104,18 @@ class _UserListScreenState extends State<UserListScreen> {
     return formatter.format(dateTime);
   }
 
-  Icon _getEmergencyIcon(double acceleration) {
-    return Icon(Icons.warning, color: Colors.red);
+  Widget _getActivityCard(String activity) {
+    return Card(
+      color: activity == 'De Pie' ? Colors.green : Colors.red,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Text(
+          activity,
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
   }
 }

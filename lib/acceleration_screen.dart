@@ -11,7 +11,9 @@ class AccelerationScreen extends StatefulWidget {
 
 class _AccelerationScreenState extends State<AccelerationScreen> {
   double threshold = 9.8 * 2.0; // Umbral para detectar caídas
+  double verticalThreshold = 9.0; // Umbral para determinar si está acostado
   bool fallDetected = false;
+  bool isLyingDown = false; // Variable para determinar si está acostado
   double accelerationValue = 0.0;
   late DatabaseReference _fallDataRef;
   bool isSavingData = false;
@@ -33,8 +35,12 @@ class _AccelerationScreenState extends State<AccelerationScreen> {
 
       bool isFall = accelerationTotal > threshold;
 
+      // Verifica si está acostado comparando con el umbral vertical
+      bool lyingDown = z < -verticalThreshold || z > verticalThreshold;
+
       setState(() {
         fallDetected = isFall;
+        isLyingDown = lyingDown;
         accelerationValue = accelerationTotal;
       });
 
@@ -66,6 +72,7 @@ class _AccelerationScreenState extends State<AccelerationScreen> {
         'acceleration': accelerationValue,
         'latitude': position.latitude,
         'longitude': position.longitude,
+        'activity': isLyingDown ? 'Acostado' : 'De Pie', // Agrega la actividad
       });
     } catch (e) {
       print('Error al obtener la ubicación: $e');
@@ -132,6 +139,17 @@ class _AccelerationScreenState extends State<AccelerationScreen> {
                       SizedBox(height: 8.0),
                       Text(
                         'Aceleración',
+                        style: TextStyle(
+                          fontSize: 18.0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      SizedBox(height: 8.0),
+                      Text(
+                        isLyingDown
+                            ? 'Acostado'
+                            : 'De Pie', // Muestra la actividad
                         style: TextStyle(
                           fontSize: 18.0,
                           fontWeight: FontWeight.bold,
