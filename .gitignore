@@ -1,3 +1,5 @@
+api_keys.properties
+AndroidManifest.xml
 # Miscellaneous
 *.class
 *.log
